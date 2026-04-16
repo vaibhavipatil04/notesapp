@@ -1,86 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Notes App Pro</title>
+    <title>Expense Tracker</title>
     <style>
         body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            font-family: 'Segoe UI';
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            transition: 0.3s;
-        }
-
-        .dark {
-            background: #121212;
-            color: white;
         }
 
         .container {
             background: white;
             padding: 20px;
             border-radius: 15px;
-            width: 400px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 350px;
             text-align: center;
-            transition: 0.3s;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
 
-        .dark .container {
-            background: #1e1e1e;
-        }
-
-        textarea, input {
-            width: 100%;
+        input {
+            width: 90%;
             padding: 10px;
+            margin-top: 10px;
             border-radius: 10px;
             border: 1px solid #ccc;
-            margin-top: 10px;
         }
 
         button {
             margin-top: 10px;
             padding: 10px;
-            width: 100%;
+            width: 95%;
             border: none;
             border-radius: 10px;
-            background: #667eea;
+            background: #ff6f61;
             color: white;
             cursor: pointer;
         }
 
-        .note {
+        .expense {
             background: #f1f1f1;
-            padding: 10px;
             margin-top: 10px;
+            padding: 10px;
             border-radius: 10px;
-            text-align: left;
-            position: relative;
-        }
-
-        .dark .note {
-            background: #2c2c2c;
+            display: flex;
+            justify-content: space-between;
         }
 
         .delete {
-            position: absolute;
-            right: 10px;
-            top: 5px;
-            cursor: pointer;
             color: red;
-        }
-
-        .time {
-            font-size: 12px;
-            color: gray;
-        }
-
-        .toggle {
             cursor: pointer;
+        }
+
+        .total {
             margin-top: 10px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -88,85 +64,65 @@
 <body>
 
 <div class="container">
-    <h2>📝 Ez Notes </h2>
+    <h2>💰 Expense Tracker</h2>
 
-    <input id="search" placeholder="Search notes..." onkeyup="searchNotes()">
-    <textarea id="noteInput" placeholder="Write your note..."></textarea>
+    <input id="desc" placeholder="Expense description">
+    <input id="amount" type="number" placeholder="Amount">
 
-    <button onclick="addNote()">Add Note</button>
-    <button class="toggle" onclick="toggleDark()">🌙 Toggle Dark Mode</button>
+    <button onclick="addExpense()">Add Expense</button>
 
-    <div id="notesContainer"></div>
+    <div id="list"></div>
+    <div class="total" id="total">Total: ₹0</div>
 </div>
 
 <script>
-let notes = JSON.parse(localStorage.getItem("notes")) || [];
+let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
 
-function saveNotes() {
-    localStorage.setItem("notes", JSON.stringify(notes));
+function save() {
+    localStorage.setItem("expenses", JSON.stringify(expenses));
 }
 
-function displayNotes() {
-    let container = document.getElementById("notesContainer");
-    container.innerHTML = "";
+function display() {
+    let list = document.getElementById("list");
+    let total = 0;
+    list.innerHTML = "";
 
-    notes.forEach((note, index) => {
+    expenses.forEach((e, index) => {
+        total += e.amount;
+
         let div = document.createElement("div");
-        div.className = "note";
+        div.className = "expense";
         div.innerHTML = `
-            ${note.text}
-            <div class="time">${note.time}</div>
-            <span class="delete" onclick="deleteNote(${index})">×</span>
+            ${e.desc} - ₹${e.amount}
+            <span class="delete" onclick="remove(${index})">×</span>
         `;
-        container.appendChild(div);
+        list.appendChild(div);
     });
+
+    document.getElementById("total").innerText = "Total: ₹" + total;
 }
 
-function addNote() {
-    let input = document.getElementById("noteInput");
-    if (input.value === "") return;
+function addExpense() {
+    let desc = document.getElementById("desc").value;
+    let amount = document.getElementById("amount").value;
 
-    let newNote = {
-        text: input.value,
-        time: new Date().toLocaleString()
-    };
+    if (desc === "" || amount === "") return;
 
-    notes.push(newNote);
-    saveNotes();
-    displayNotes();
+    expenses.push({ desc, amount: Number(amount) });
+    save();
+    display();
 
-    input.value = "";
+    document.getElementById("desc").value = "";
+    document.getElementById("amount").value = "";
 }
 
-function deleteNote(index) {
-    notes.splice(index, 1);
-    saveNotes();
-    displayNotes();
+function remove(index) {
+    expenses.splice(index, 1);
+    save();
+    display();
 }
 
-function toggleDark() {
-    document.body.classList.toggle("dark");
-}
-
-function searchNotes() {
-    let query = document.getElementById("search").value.toLowerCase();
-    let filtered = notes.filter(n => n.text.toLowerCase().includes(query));
-
-    let container = document.getElementById("notesContainer");
-    container.innerHTML = "";
-
-    filtered.forEach(note => {
-        let div = document.createElement("div");
-        div.className = "note";
-        div.innerHTML = `
-            ${note.text}
-            <div class="time">${note.time}</div>
-        `;
-        container.appendChild(div);
-    });
-}
-
-displayNotes();
+display();
 </script>
 
 </body>
